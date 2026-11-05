@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Vidora"
 include(":app")
+
