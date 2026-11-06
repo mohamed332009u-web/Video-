@@ -1,8 +1,9 @@
-
 package com.vidora.app
 
 import android.app.Activity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebChromeClient
@@ -18,39 +19,32 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         webView = WebView(this)
+        setContentView(webView)
+
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
         webView.webViewClient = WebViewClient()
         webView.webChromeClient = WebChromeClient()
-
-        setContentView(webView)
 
         try {
             if (!Python.isStarted()) {
                 Python.start(AndroidPlatform(this))
             }
 
-            Thread {
-                try {
-                    val py = Python.getInstance()
-                    py.getModule("main").callAttr("start_server")
+            val python = Python.getInstance()
+            val module = python.getModule("main")
+            module.callAttr("start_server")
 
-                    runOnUiThread {
-                        webView.loadUrl("http://127.0.0.1:8080")
-                    }
-                } catch (e: Exception) {
-                    runOnUiThread {
-                        Toast.makeText(
-                            this,
-                            "خطأ في تشغيل Vidora: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-            }.start()
+            Handler(Looper.getMainLooper()).postDelayed({
+                webView.loadUrl("http://127.0.0.1:8080")
+            }, 1000)
 
         } catch (e: Exception) {
-            Toast.makeText(this, e.message, Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "خطأ في تشغيل Vidora: ${e.message}",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
